@@ -677,15 +677,22 @@ def run_streamlit_app():
 # ===========================================================================
 # Main Execution Dispatcher
 # ===========================================================================
-def main():
-    # Detect if invoked through `streamlit run`
-    is_streamlit = (
-        "streamlit" in os.path.basename(sys.argv[0]).lower()
-        or os.environ.get("STREAMLIT_SERVER_PORT") is not None
-        or (len(sys.argv) > 1 and sys.argv[1] == "run")
-    )
+def is_running_in_streamlit() -> bool:
+    """Reliable detection for Streamlit Cloud and local `streamlit run`."""
+    try:
+        from streamlit.runtime.scriptrunner import get_script_run_ctx
+        return get_script_run_ctx() is not None
+    except Exception:
+        # Fallback checks
+        return (
+            "streamlit" in os.path.basename(sys.argv[0]).lower()
+            or os.environ.get("STREAMLIT_SERVER_PORT") is not None
+            or (len(sys.argv) > 1 and sys.argv[1] == "run")
+        )
 
-    if is_streamlit:
+
+def main():
+    if is_running_in_streamlit():
         run_streamlit_app()
         return
 
